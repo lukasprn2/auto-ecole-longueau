@@ -7,6 +7,48 @@
   <title>Auto-École de Longueau | Permis B, AAC, Boîte auto, manuelle</title>
   <link rel="icon" href="favicon.jpg" type="image/png">
   <script src="https://kit.fontawesome.com/0b1c9b6f5f.js" crossorigin="anonymous"></script>
+
+  <!-- ===== FIREBASE SDK ===== -->
+  <!-- 🔧 CONFIGURATION FIREBASE — Remplacez ces valeurs par celles de votre projet Firebase -->
+  <!-- 1. Allez sur https://console.firebase.google.com -->
+  <!-- 2. Créez un projet → Ajoutez une application Web -->
+  <!-- 3. Copiez votre firebaseConfig ici -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // 🔧 REMPLACEZ CES VALEURS PAR VOTRE CONFIG FIREBASE
+    const firebaseConfig = {
+      apiKey:            "VOTRE_API_KEY",
+      authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+      databaseURL:       "https://VOTRE_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:         "VOTRE_PROJECT_ID",
+      storageBucket:     "VOTRE_PROJECT.appspot.com",
+      messagingSenderId: "VOTRE_SENDER_ID",
+      appId:             "VOTRE_APP_ID"
+    };
+
+    // Initialisation Firebase (désactivée si config non renseignée)
+    let db = null;
+    let firebaseReady = false;
+
+    try {
+      if (firebaseConfig.apiKey !== "VOTRE_API_KEY") {
+        const app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+        firebaseReady = true;
+        console.log("✅ Firebase connecté");
+      } else {
+        console.warn("⚠️ Firebase non configuré — mode local uniquement");
+      }
+    } catch(e) {
+      console.error("❌ Erreur Firebase :", e);
+    }
+
+    // Expose sur window pour l'utiliser dans le script principal
+    window._firebase = { db, ref, set, get, onValue, ready: firebaseReady };
+  </script>
+
   <style>
     /* ===== RESET ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,14 +92,11 @@
       border-radius: 5px;
       transition: background 0.2s, color 0.2s;
     }
-    #menu-bandeau a:hover {
-      background: #00bfff;
-      color: #111;
-    }
+    #menu-bandeau a:hover { background: #00bfff; color: #111; }
 
     /* Bouton admin dans le menu */
     #admin-login-btn {
-      width: 34px; height: 34px;
+      width: 38px; height: 38px;
       border-radius: 50%;
       background: none;
       border: 2px solid #00bfff;
@@ -66,11 +105,11 @@
       align-items: center;
       justify-content: center;
       color: #00bfff;
-      font-size: 15px;
+      font-size: 16px;
       transition: all 0.2s;
       flex-shrink: 0;
       position: relative;
-      margin-left: 10px;
+      margin-left: 12px;
     }
     #admin-login-btn:hover { background: #00bfff; color: #000; }
     #admin-login-btn.logged-in { background: #00bfff; color: #000; }
@@ -90,12 +129,7 @@
 
     /* ===== MAIN ===== */
     main { max-width: 1200px; margin: auto; padding: 30px 20px; }
-
-    section {
-      margin-bottom: 50px;
-      padding: 15px;
-    }
-
+    section { margin-bottom: 50px; padding: 15px; }
     h2 {
       margin-bottom: 25px;
       text-align: left;
@@ -104,7 +138,6 @@
       padding-bottom: 5px;
       font-size: 1.8em;
     }
-
     ul { list-style: none; }
     li { margin-bottom: 12px; }
 
@@ -117,11 +150,7 @@
       margin-top: 30px;
       flex-wrap: wrap;
     }
-    .logos-affiliation img {
-      width: 250px;
-      max-width: 100%;
-      height: auto;
-    }
+    .logos-affiliation img { width: 250px; max-width: 100%; height: auto; }
 
     /* ===== HORAIRES ===== */
     #horaires ul { text-align: center; }
@@ -138,334 +167,145 @@
     .cadre-tarifs li, .forfaits-ajout li { margin-bottom: 10px; }
 
     /* ===== VÉHICULES ===== */
-    .vehicules {
-      display: flex;
-      justify-content: center;
-      gap: 50px;
-      flex-wrap: wrap;
-      margin-top: 30px;
-    }
-    .vehicule {
-      text-align: center;
-      max-width: 250px;
-    }
-    .vehicule img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-    }
+    .vehicules { display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-top: 30px; }
+    .vehicule { text-align: center; max-width: 250px; }
+    .vehicule img { width: 100%; height: auto; border-radius: 10px; }
 
     /* ===== ÉQUIPE ===== */
-    .equipe {
-      display: flex;
-      justify-content: center;
-      gap: 50px;
-      flex-wrap: wrap;
-      margin-top: 30px;
-    }
-    .membre {
-      text-align: center;
-      max-width: 250px;
-    }
-    .membre img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-    }
+    .equipe { display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; margin-top: 30px; }
+    .membre { text-align: center; max-width: 250px; }
+    .membre img { width: 100%; height: auto; border-radius: 10px; }
 
-    /* ===== SÉPARATEUR BLEU ===== */
-    .separator hr {
-      border: 0;
-      height: 3px;
-      background-color: #00bfff;
-      width: 80%;
-      margin: 30px auto 0 auto;
-    }
-    .separator p {
-      max-width: 800px;
-      margin: 15px auto 0 auto;
-      font-size: 1em;
-      line-height: 1.6;
-      text-align: center;
-    }
+    /* ===== SÉPARATEUR ===== */
+    .separator hr { border: 0; height: 3px; background-color: #00bfff; width: 80%; margin: 30px auto 0 auto; }
+    .separator p { max-width: 800px; margin: 15px auto 0 auto; font-size: 1em; line-height: 1.6; text-align: center; }
 
     /* ===== AVIS ===== */
     #avis ul { list-style-type: disc; padding-left: 25px; }
     #avis li p { margin: 10px 0; font-size: 1em; line-height: 1.6; text-align: left; }
 
     /* ===== FORMULAIRE RDV ===== */
-    .form-rdv {
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+    .form-rdv { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
     .form-rdv label { font-size: 20px; font-weight: bold; }
-    .form-rdv input,
-    .form-rdv select,
-    .form-rdv textarea {
-      width: 100%;
-      padding: 16px;
-      font-size: 18px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    .form-rdv input, .form-rdv select, .form-rdv textarea {
+      width: 100%; padding: 16px; font-size: 18px;
+      border: 1px solid #ccc; border-radius: 5px;
     }
     .form-rdv button {
-      padding: 18px;
-      font-size: 20px;
-      background: #00bfff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 18px; font-size: 20px; background: #00bfff; color: #fff;
+      border: none; border-radius: 5px; cursor: pointer;
     }
     .form-rdv button:hover { background: #0097d6; }
 
     /* ===== FAQ ===== */
     .faq-question {
-      width: 100%;
-      background-color: #fff;
-      color: #111;
-      cursor: pointer;
-      padding: 15px 20px;
-      border: 2px solid #00bfff;
-      text-align: left;
-      outline: none;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      transition: background 0.3s, border-color 0.3s;
+      width: 100%; background-color: #fff; color: #111; cursor: pointer;
+      padding: 15px 20px; border: 2px solid #00bfff; text-align: left;
+      outline: none; font-size: 18px; font-weight: bold; margin-bottom: 10px;
+      border-radius: 5px; transition: background 0.3s, border-color 0.3s;
     }
     .faq-question:hover { background-color: #f0f8ff; border-color: #0097d6; }
-    .faq-answer {
-      display: none;
-      padding: 15px 20px;
-      background-color: #f1f1f1;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
+    .faq-answer { display: none; padding: 15px 20px; background-color: #f1f1f1; margin-bottom: 10px; border-radius: 5px; }
     .faq-answer p { margin: 0; }
 
     /* ===== ANCRES OFFSET ===== */
-    .anchor-offset {
-      display: block;
-      position: relative;
-      top: -60px;
-      visibility: hidden;
-    }
+    .anchor-offset { display: block; position: relative; top: -60px; visibility: hidden; }
 
     /* ===== FOOTER ===== */
-    footer {
-      background: #111;
-      color: #ffffff;
-      text-align: center;
-      padding: 20px 0;
-    }
+    footer { background: #111; color: #ffffff; text-align: center; padding: 20px 0; }
 
     /* ===== BACK TO TOP ===== */
     #backToTop {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #00bfff;
-      color: #ffffff;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 5px;
-      cursor: pointer;
-      display: none;
-      font-size: 18px;
-      z-index: 500;
+      position: fixed; bottom: 30px; right: 30px;
+      background: #00bfff; color: #ffffff; border: none;
+      padding: 12px 16px; border-radius: 5px; cursor: pointer;
+      display: none; font-size: 18px; z-index: 500;
     }
 
     /* ===== MODAL CONNEXION ADMIN ===== */
     .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 9000;
-      display: none;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 9000; display: none; align-items: center; justify-content: center;
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
-      background: #fff;
-      border: 3px solid #00bfff;
-      border-radius: 10px;
-      padding: 36px 40px;
-      width: 90%;
-      max-width: 420px;
-      position: relative;
+      background: #fff; border: 3px solid #00bfff; border-radius: 10px;
+      padding: 36px 40px; width: 90%; max-width: 420px; position: relative;
     }
-    .modal-close {
-      position: absolute;
-      top: 12px; right: 14px;
-      background: none; border: none;
-      font-size: 22px;
-      color: #888;
-      cursor: pointer;
-      line-height: 1;
-    }
+    .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 22px; color: #888; cursor: pointer; }
     .modal-close:hover { color: #000; }
-    .modal-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #000;
-      margin-bottom: 4px;
-      border-bottom: 2px solid #00bfff;
-      display: inline-block;
-      padding-bottom: 4px;
-    }
+    .modal-title { font-size: 1.5rem; font-weight: bold; color: #000; margin-bottom: 4px; border-bottom: 2px solid #00bfff; display: inline-block; padding-bottom: 4px; }
     .modal-subtitle { font-size: 14px; color: #888; margin: 10px 0 24px; }
     .modal-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-    .modal-field label {
-      font-size: 13px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #444;
-    }
-    .modal-field input {
-      font-size: 15px; padding: 10px 12px;
-      border: 2px solid #ccc;
-      border-radius: 5px;
-      outline: none;
-      font-family: Arial, sans-serif;
-      transition: border-color 0.2s;
-    }
+    .modal-field label { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.06em; color: #444; }
+    .modal-field input { font-size: 15px; padding: 10px 12px; border: 2px solid #ccc; border-radius: 5px; outline: none; transition: border-color 0.2s; }
     .modal-field input:focus { border-color: #00bfff; }
-    .modal-error {
-      background: #fff0f0;
-      color: #cc2200;
-      border: 2px solid #f5c6c2;
-      border-radius: 5px;
-      padding: 10px 14px;
-      font-size: 14px;
-      margin-bottom: 14px;
-      display: none;
-    }
+    .modal-error { background: #fff0f0; color: #cc2200; border: 2px solid #f5c6c2; border-radius: 5px; padding: 10px 14px; font-size: 14px; margin-bottom: 14px; display: none; }
     .modal-error.show { display: block; }
     .btn-login {
-      width: 100%; padding: 14px;
-      background: #00bfff;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-weight: bold;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      border: none; border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 4px;
+      width: 100%; padding: 14px; background: #00bfff; color: #fff; font-weight: bold;
+      font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase;
+      border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s; margin-top: 4px;
     }
     .btn-login:hover { background: #0097d6; }
-    .modal-hint { text-align:center; font-size:13px; color:#888; margin-top:14px; }
 
     /* ===== PANNEAU ADMIN ===== */
-    #admin-panel {
-      display: none;
-      position: fixed; inset: 0;
-      z-index: 8000;
-      background: #f5f5f5;
-      overflow-y: auto;
-    }
+    #admin-panel { display: none; position: fixed; inset: 0; z-index: 8000; background: #f5f5f5; overflow-y: auto; }
     #admin-panel.open { display: block; }
 
     .admin-topbar {
-      background: #000;
-      border-bottom: 3px solid #00bfff;
-      color: #fff;
-      padding: 0 28px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky; top: 0; z-index: 10;
+      background: #000; border-bottom: 3px solid #00bfff; color: #fff;
+      padding: 0 28px; height: 60px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 10;
     }
-    .admin-topbar-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #00bfff;
-      letter-spacing: 0.02em;
-    }
+    .admin-topbar-title { font-size: 1.1rem; font-weight: bold; color: #00bfff; letter-spacing: 0.02em; }
     .admin-topbar-title span { color: #fff; font-weight: normal; }
     .btn-logout {
-      background: none;
-      color: #00bfff;
-      border: 2px solid #00bfff;
-      border-radius: 5px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: none; color: #00bfff; border: 2px solid #00bfff; border-radius: 5px;
+      padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
     }
     .btn-logout:hover { background: #00bfff; color: #000; }
     .btn-back-site {
-      background: rgba(0,191,255,0.15);
-      color: #00bfff;
-      border: 2px solid #00bfff;
-      border-radius: 5px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-right: 8px;
+      background: rgba(0,191,255,0.15); color: #00bfff; border: 2px solid #00bfff;
+      border-radius: 5px; padding: 8px 16px; font-size: 13px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; margin-right: 8px;
+      display: flex; align-items: center; gap: 6px;
     }
     .btn-back-site:hover { background: #00bfff; color: #000; }
 
     .admin-body { max-width: 1000px; margin: 0 auto; padding: 30px 24px; }
 
     .admin-welcome {
-      background: #fff;
-      border: 2px solid #00bfff;
-      border-radius: 8px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
+      background: #fff; border: 2px solid #00bfff; border-radius: 8px;
+      padding: 24px 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;
     }
     .admin-welcome-icon {
-      width: 50px; height: 50px;
-      background: #e0f7ff;
-      border: 2px solid #00bfff;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+      width: 50px; height: 50px; background: #e0f7ff; border: 2px solid #00bfff;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
       font-size: 24px; color: #00bfff; flex-shrink: 0;
     }
-    .admin-welcome h2 {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #000;
-      margin-bottom: 4px;
-      border: none;
-      padding: 0;
-      display: block;
-    }
+    .admin-welcome h2 { font-size: 1.2rem; font-weight: bold; color: #000; margin-bottom: 4px; border: none; padding: 0; display: block; }
     .admin-welcome p { font-size: 14px; color: #666; }
+
+    /* Indicateur Firebase */
+    #firebase-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; padding: 4px 10px; border-radius: 20px;
+      margin-top: 8px; font-weight: bold;
+    }
+    #firebase-status.connected { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    #firebase-status.offline { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+    .firebase-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .firebase-dot.connected { background: #22cc55; }
+    .firebase-dot.offline { background: #f0a500; }
 
     /* ONGLETS ADMIN */
     .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
     .admin-tab-btn {
-      padding: 10px 20px;
-      background: #fff;
-      border: 2px solid #ccc;
-      border-radius: 5px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: #444;
-      cursor: pointer;
-      transition: all 0.15s;
+      padding: 10px 18px; background: #fff; border: 2px solid #ccc; border-radius: 5px;
+      font-size: 13px; font-weight: bold; letter-spacing: 0.03em; text-transform: uppercase;
+      color: #444; cursor: pointer; transition: all 0.15s;
       display: flex; align-items: center; gap: 8px;
     }
     .admin-tab-btn:hover { border-color: #00bfff; color: #00bfff; background: #e0f7ff; }
@@ -474,163 +314,105 @@
     .admin-section.active { display: block; }
 
     /* CARD ADMIN */
-    .admin-card {
-      background: #fff;
-      border: 2px solid #00bfff;
-      border-radius: 8px;
-      padding: 28px;
-      margin-bottom: 16px;
-    }
-    .admin-card-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #000;
-      margin-bottom: 4px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .admin-card-title i { color: #00bfff; }
+    .admin-card { background: #fff; border: 2px solid #00bfff; border-radius: 8px; padding: 28px; margin-bottom: 16px; }
+    .admin-card-title { font-size: 1.1rem; font-weight: bold; color: #000; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    .admin-card-title i { color: #00bfff; font-size: 1.1rem; }
     .admin-card-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
 
     /* CHAMPS ADMIN */
     .admin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
     .admin-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-    .admin-field label {
-      font-size: 12px; font-weight: bold;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: #444;
+    .admin-field label { font-size: 12px; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; color: #444; display: flex; align-items: center; gap: 6px; }
+    .admin-field label i { color: #00bfff; font-size: 11px; }
+    .admin-field input, .admin-field select, .admin-field textarea {
+      font-size: 15px; padding: 10px 12px; border: 2px solid #ccc; border-radius: 5px;
+      outline: none; color: #000; background: #fff; width: 100%; transition: border-color 0.2s;
     }
-    .admin-field input,
-    .admin-field select,
-    .admin-field textarea {
-      font-size: 15px; padding: 10px 12px;
-      border: 2px solid #ccc;
-      border-radius: 5px;
-      outline: none;
-      font-family: Arial, sans-serif;
-      color: #000;
-      background: #fff;
-      width: 100%;
-      transition: border-color 0.2s;
-    }
-    .admin-field input:focus,
-    .admin-field select:focus,
-    .admin-field textarea:focus { border-color: #00bfff; }
+    .admin-field input:focus, .admin-field select:focus, .admin-field textarea:focus { border-color: #00bfff; }
     .admin-field textarea { resize: vertical; min-height: 80px; }
+
+    /* Champ mot de passe avec toggle */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: #888; font-size: 16px; padding: 0;
+    }
+    .pw-toggle:hover { color: #00bfff; }
+
+    /* Info hash */
+    .hash-info {
+      font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; margin-top: 4px;
+    }
+    .hash-info i { color: #00bfff; }
 
     /* HORAIRES ADMIN */
     .horaire-admin-row {
-      display: grid;
-      grid-template-columns: 130px 120px 1fr;
-      gap: 10px;
-      align-items: center;
-      background: #f8f8f8;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
+      display: grid; grid-template-columns: 130px 120px 1fr; gap: 10px;
+      align-items: center; background: #f8f8f8; border: 2px solid #ddd;
+      border-radius: 5px; padding: 12px 16px; margin-bottom: 8px;
     }
-    .horaire-admin-day { font-size: 15px; font-weight: bold; color: #000; }
+    .horaire-admin-day { font-size: 15px; font-weight: bold; color: #000; display: flex; align-items: center; gap: 8px; }
     .admin-toggle { display: flex; align-items: center; gap: 7px; font-size: 14px; color: #444; cursor: pointer; }
     .admin-toggle input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #00bfff; }
 
     /* TARIFS ADMIN */
     .tarif-admin-row {
-      display: grid;
-      grid-template-columns: 1fr 90px auto;
-      gap: 10px;
-      align-items: start;
-      background: #f8f8f8;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
+      display: grid; grid-template-columns: 1fr 90px auto; gap: 10px;
+      align-items: start; background: #f8f8f8; border: 2px solid #ddd;
+      border-radius: 5px; padding: 14px 16px; margin-bottom: 10px;
     }
 
     /* FAQ ADMIN */
-    .faq-admin-item {
-      background: #f8f8f8;
-      border: 2px solid #ddd;
-      border-radius: 5px;
-      padding: 16px;
-      margin-bottom: 10px;
-    }
+    .faq-admin-item { background: #f8f8f8; border: 2px solid #ddd; border-radius: 5px; padding: 16px; margin-bottom: 10px; }
     .faq-admin-actions { display: flex; gap: 8px; margin-top: 10px; }
 
     /* BOUTONS ADMIN */
     .btn-save {
-      background: #00bfff;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      font-weight: bold;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      background: #00bfff; color: #fff; font-size: 14px; font-weight: bold;
+      letter-spacing: 0.04em; text-transform: uppercase; padding: 12px 24px;
+      border: none; border-radius: 5px; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
     }
     .btn-save:hover { background: #0097d6; }
     .btn-add {
-      background: #fff;
-      color: #00bfff;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 10px 18px;
-      border: 2px dashed #00bfff;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      width: 100%;
-      justify-content: center;
-      margin-top: 4px;
+      background: #fff; color: #00bfff; font-size: 13px; font-weight: bold;
+      letter-spacing: 0.04em; text-transform: uppercase; padding: 10px 18px;
+      border: 2px dashed #00bfff; border-radius: 5px; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 7px; width: 100%;
+      justify-content: center; margin-top: 4px;
     }
     .btn-add:hover { background: #e0f7ff; }
     .btn-del {
-      background: #fff0f0;
-      color: #cc2200;
-      border: 2px solid #f5c6c2;
-      border-radius: 5px;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: bold;
-      transition: background 0.2s;
-      white-space: nowrap;
+      background: #fff0f0; color: #cc2200; border: 2px solid #f5c6c2;
+      border-radius: 5px; padding: 8px 12px; cursor: pointer; font-size: 13px;
+      font-weight: bold; transition: background 0.2s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 5px;
     }
     .btn-del:hover { background: #fad8d4; }
 
+    /* Séparateur section */
+    .admin-section-divider {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; font-weight: bold; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #888; margin: 20px 0 12px;
+    }
+    .admin-section-divider::before, .admin-section-divider::after {
+      content: ''; flex: 1; height: 1px; background: #ddd;
+    }
+
     /* TOAST */
     #toast {
-      position: fixed;
-      bottom: 24px; right: 24px;
-      background: #000;
-      color: #fff;
-      border: 2px solid #00bfff;
-      padding: 12px 20px;
-      border-radius: 5px;
-      font-size: 14px;
-      font-family: Arial, sans-serif;
-      font-weight: bold;
-      z-index: 99999;
-      display: flex; align-items: center; gap: 8px;
-      transform: translateY(60px);
-      opacity: 0;
-      transition: all 0.3s;
-      pointer-events: none;
+      position: fixed; bottom: 24px; right: 24px; background: #000;
+      color: #fff; border: 2px solid #00bfff; padding: 12px 20px;
+      border-radius: 5px; font-size: 14px; font-weight: bold;
+      z-index: 99999; display: flex; align-items: center; gap: 8px;
+      transform: translateY(60px); opacity: 0; transition: all 0.3s; pointer-events: none;
     }
     #toast.show { transform: translateY(0); opacity: 1; }
     #toast i { color: #00bfff; }
+    #toast.error { border-color: #cc2200; }
+    #toast.error i { color: #cc2200; }
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 600px) {
@@ -658,30 +440,32 @@
   <div class="modal-box">
     <button class="modal-close" onclick="closeLoginModal()" title="Fermer">✕</button>
     <div style="margin-bottom:20px">
-      <div class="modal-title">Espace Administration</div>
+      <div class="modal-title"><i class="fa-solid fa-shield-halved" style="color:#00bfff;margin-right:8px"></i>Espace Administration</div>
       <div class="modal-subtitle">Connectez-vous pour modifier le site</div>
     </div>
-    <div id="login-error" class="modal-error">⚠️ Identifiant ou mot de passe incorrect.</div>
+    <div id="login-error" class="modal-error"><i class="fa-solid fa-triangle-exclamation"></i> Identifiant ou mot de passe incorrect.</div>
     <div class="modal-field">
-      <label>Identifiant</label>
+      <label><i class="fa-solid fa-user" style="color:#00bfff"></i> Identifiant</label>
       <input type="text" id="login-user" placeholder="Votre identifiant" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="modal-field">
-      <label>Mot de passe</label>
-      <input type="password" id="login-pass" placeholder="Votre mot de passe" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <label><i class="fa-solid fa-lock" style="color:#00bfff"></i> Mot de passe</label>
+      <div class="pw-wrap">
+        <input type="password" id="login-pass" placeholder="Votre mot de passe" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pw-toggle" type="button" onclick="togglePw('login-pass',this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+      </div>
     </div>
-    <button class="btn-login" onclick="doLogin()">Se connecter</button>
-    <!--<p class="modal-hint">Identifiants par défaut : <strong>admin</strong> / <strong>longueau2024</strong></p>-->
+    <button class="btn-login" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>
   </div>
 </div>
 
 <!-- ===== PANNEAU ADMIN ===== -->
 <div id="admin-panel">
   <div class="admin-topbar">
-    <div class="admin-topbar-title">Administration — <span>Auto-École de Longueau</span></div>
+    <div class="admin-topbar-title"><i class="fa-solid fa-gauge-high" style="margin-right:8px"></i>Administration — <span>Auto-École de Longueau</span></div>
     <div style="display:flex;align-items:center;gap:8px">
       <button class="btn-back-site" onclick="closeAdmin()"><i class="fa-solid fa-arrow-left"></i> Retour au site</button>
-      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+      <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
     </div>
   </div>
 
@@ -689,8 +473,12 @@
     <div class="admin-welcome">
       <div class="admin-welcome-icon"><i class="fa-solid fa-pen-to-square"></i></div>
       <div>
-        <h2>Bienvenue dans votre espace de gestion</h2>
+        <h2><i class="fa-solid fa-hand-wave" style="color:#00bfff;margin-right:6px"></i>Bienvenue dans votre espace de gestion</h2>
         <p>Choisissez ce que vous souhaitez modifier. Chaque modification est appliquée immédiatement sur le site.</p>
+        <div id="firebase-status" class="offline">
+          <div class="firebase-dot offline"></div>
+          <i class="fa-solid fa-database"></i> Mode local (Firebase non configuré)
+        </div>
       </div>
     </div>
 
@@ -700,13 +488,14 @@
       <button class="admin-tab-btn" onclick="showAdminTab('contacts',this)"><i class="fa-solid fa-address-book"></i> Contacts</button>
       <button class="admin-tab-btn" onclick="showAdminTab('tarifs',this)"><i class="fa-solid fa-euro-sign"></i> Tarifs</button>
       <button class="admin-tab-btn" onclick="showAdminTab('faq',this)"><i class="fa-solid fa-circle-question"></i> FAQ</button>
+      <button class="admin-tab-btn" onclick="showAdminTab('compte',this)"><i class="fa-solid fa-user-gear"></i> Mon compte</button>
     </div>
 
-    <!-- HORAIRES -->
+    <!-- ===== HORAIRES ===== -->
     <div class="admin-section active" id="admin-horaires">
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-clock"></i> Modifier les horaires d'ouverture</div>
-        <div class="admin-card-desc">Pour chaque jour, indiquez les heures d'ouverture. Décochez la case si le bureau est fermé ce jour-là.</div>
+        <div class="admin-card-desc"><i class="fa-solid fa-circle-info" style="color:#00bfff"></i> Pour chaque jour, indiquez les heures d'ouverture. Décochez la case si le bureau est fermé ce jour-là.</div>
         <div id="horaires-editor"></div>
         <div style="margin-top:20px">
           <button class="btn-save" onclick="saveHoraires()"><i class="fa-solid fa-floppy-disk"></i> Enregistrer les horaires</button>
@@ -714,31 +503,31 @@
       </div>
     </div>
 
-    <!-- CONTACTS -->
+    <!-- ===== CONTACTS ===== -->
     <div class="admin-section" id="admin-contacts">
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-address-book"></i> Modifier les informations de contact</div>
-        <div class="admin-card-desc">Mettez à jour vos numéros, email et adresse.</div>
+        <div class="admin-card-desc"><i class="fa-solid fa-circle-info" style="color:#00bfff"></i> Mettez à jour vos numéros, email et adresse.</div>
         <div class="admin-form-row">
           <div class="admin-field">
-            <label>Téléphone fixe</label>
+            <label><i class="fa-solid fa-phone"></i> Téléphone fixe</label>
             <input type="tel" id="c-fixe" value="03 22 53 93 60">
           </div>
           <div class="admin-field">
-            <label>Téléphone portable</label>
+            <label><i class="fa-solid fa-mobile-screen"></i> Téléphone portable</label>
             <input type="tel" id="c-mobile" value="06 07 57 75 33">
           </div>
         </div>
         <div class="admin-field">
-          <label>Adresse email</label>
+          <label><i class="fa-solid fa-envelope"></i> Adresse email</label>
           <input type="email" id="c-email" value="autoecoledelongueau@free.fr">
         </div>
         <div class="admin-field">
-          <label>Adresse postale</label>
+          <label><i class="fa-solid fa-location-dot"></i> Adresse postale</label>
           <input type="text" id="c-adresse" value="115 Avenue Henri Barbusse, 80330 Longueau">
         </div>
         <div class="admin-field">
-          <label>Lien Facebook</label>
+          <label><i class="fa-brands fa-facebook"></i> Lien Facebook</label>
           <input type="url" id="c-facebook" value="https://www.facebook.com/profile.php?id=100054197694817&locale=fr_FR">
         </div>
         <div style="margin-top:8px">
@@ -747,11 +536,11 @@
       </div>
     </div>
 
-    <!-- TARIFS -->
+    <!-- ===== TARIFS ===== -->
     <div class="admin-section" id="admin-tarifs">
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-euro-sign"></i> Modifier les tarifs</div>
-        <div class="admin-card-desc">Modifiez le nom, la description, la catégorie et le prix de chaque prestation. Les catégories correspondent aux cadres affichés sur le site.</div>
+        <div class="admin-card-desc"><i class="fa-solid fa-circle-info" style="color:#00bfff"></i> Modifiez le nom, la description, la catégorie et le prix de chaque prestation.</div>
         <div id="tarifs-editor"></div>
         <button class="btn-add" onclick="addTarifLine()"><i class="fa-solid fa-plus"></i> Ajouter une prestation</button>
         <div style="margin-top:18px">
@@ -760,16 +549,78 @@
       </div>
     </div>
 
-    <!-- FAQ -->
+    <!-- ===== FAQ ===== -->
     <div class="admin-section" id="admin-faq">
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-circle-question"></i> Modifier les questions / réponses (FAQ)</div>
-        <div class="admin-card-desc">Modifiez, supprimez ou ajoutez des questions fréquentes.</div>
+        <div class="admin-card-desc"><i class="fa-solid fa-circle-info" style="color:#00bfff"></i> Modifiez, supprimez ou ajoutez des questions fréquentes.</div>
         <div id="faq-editor"></div>
         <button class="btn-add" onclick="addFaqItem()"><i class="fa-solid fa-plus"></i> Ajouter une question</button>
         <div style="margin-top:18px">
           <button class="btn-save" onclick="saveFaq()"><i class="fa-solid fa-floppy-disk"></i> Enregistrer la FAQ</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ===== MON COMPTE ===== -->
+    <div class="admin-section" id="admin-compte">
+      <div class="admin-card">
+        <div class="admin-card-title"><i class="fa-solid fa-user-gear"></i> Modifier mes identifiants de connexion</div>
+        <div class="admin-card-desc"><i class="fa-solid fa-shield-halved" style="color:#00bfff"></i> Le mot de passe est chiffré (SHA-256) et jamais stocké en clair.</div>
+
+        <div class="admin-section-divider"><i class="fa-solid fa-user"></i> Identifiant</div>
+        <div class="admin-field">
+          <label><i class="fa-solid fa-user"></i> Nouvel identifiant</label>
+          <input type="text" id="new-username" placeholder="Nouvel identifiant" autocomplete="off">
+        </div>
+
+        <div class="admin-section-divider"><i class="fa-solid fa-lock"></i> Mot de passe</div>
+        <div class="admin-field">
+          <label><i class="fa-solid fa-lock"></i> Mot de passe actuel (confirmation)</label>
+          <div class="pw-wrap">
+            <input type="password" id="confirm-current-pw" placeholder="Saisissez votre mot de passe actuel">
+            <button class="pw-toggle" type="button" onclick="togglePw('confirm-current-pw',this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="admin-field">
+          <label><i class="fa-solid fa-key"></i> Nouveau mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="new-pw" placeholder="Nouveau mot de passe (min. 8 caractères)">
+            <button class="pw-toggle" type="button" onclick="togglePw('new-pw',this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="admin-field">
+          <label><i class="fa-solid fa-key"></i> Confirmer le nouveau mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="confirm-new-pw" placeholder="Répétez le nouveau mot de passe">
+            <button class="pw-toggle" type="button" onclick="togglePw('confirm-new-pw',this)" tabindex="-1"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="hash-info"><i class="fa-solid fa-shield-halved"></i> Le mot de passe sera stocké sous forme de hash SHA-256 — impossible à lire en clair.</div>
+        <div id="compte-error" class="modal-error" style="margin-top:14px"><i class="fa-solid fa-triangle-exclamation"></i> <span id="compte-error-msg"></span></div>
+        <div style="margin-top:18px">
+          <button class="btn-save" onclick="saveCompte()"><i class="fa-solid fa-floppy-disk"></i> Enregistrer les identifiants</button>
+        </div>
+      </div>
+
+      <!-- Carte info Firebase -->
+      <div class="admin-card">
+        <div class="admin-card-title"><i class="fa-solid fa-database"></i> Base de données Firebase</div>
+        <div class="admin-card-desc">Toutes les modifications (horaires, contacts, tarifs, FAQ, identifiants) sont synchronisées avec Firebase Realtime Database quand la connexion est configurée.</div>
+        <div style="background:#f8f8f8;border:2px solid #ddd;border-radius:6px;padding:16px;font-family:monospace;font-size:13px;line-height:1.8;color:#333">
+          <div><i class="fa-solid fa-folder-tree" style="color:#00bfff"></i> Structure des données Firebase :</div>
+          <div style="margin-top:8px;padding-left:16px">
+            <div><span style="color:#00bfff">autoecolelongueau/</span></div>
+            <div style="padding-left:16px">
+              <div>├─ <span style="color:#22cc55">horaires/</span> ← jours + heures ouverture</div>
+              <div>├─ <span style="color:#22cc55">contacts/</span> ← tel, email, adresse, fb</div>
+              <div>├─ <span style="color:#22cc55">tarifs/</span> ← toutes les prestations</div>
+              <div>├─ <span style="color:#22cc55">faq/</span> ← questions / réponses</div>
+              <div>└─ <span style="color:#22cc55">auth/</span> ← username + hash mot de passe</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#888;margin-top:12px"><i class="fa-solid fa-circle-info" style="color:#00bfff"></i> Pour connecter Firebase, remplacez les valeurs <code>VOTRE_*</code> dans la configuration en haut du fichier HTML.</p>
       </div>
     </div>
   </div>
@@ -791,7 +642,7 @@
     <a href="#faq">FAQ</a>
   </div>
   <button id="admin-login-btn" onclick="openLoginModal()" title="Espace administration">
-    <i class="fa-solid fa-user"></i>
+    <i class="fa-solid fa-user-tie"></i>
     <div class="admin-badge"></div>
   </button>
 </nav>
@@ -803,7 +654,7 @@
 
 <main>
 
-  <!-- LOGOS, LABEL QUALITÉ ET AFFILIATION -->
+  <!-- LOGOS -->
   <section id="logos-affiliation">
     <div class="logos-affiliation">
       <img src="affiliation.jpg" alt="Code Rousseau">
@@ -812,7 +663,7 @@
     </div>
   </section>
 
-  <!-- HORAIRES D'OUVERTURE -->
+  <!-- HORAIRES -->
   <section id="horaires">
     <span class="anchor-offset"></span>
     <h2>Horaires d'ouverture du bureau et des sessions de codes</h2>
@@ -861,10 +712,7 @@
     </div>
     <div class="separator">
       <hr>
-      <p>
-        Sylvie et Sarah accompagnent les élèves de <strong>Longueau</strong> et des communes voisines dans la réussite du <strong>permis B</strong>, en <strong>boîte manuelle</strong> et <strong>boîte automatique</strong>.
-        Notre auto-école propose également la conduite accompagnée (AAC), la conduite supervisée et la formation passerelle.
-      </p>
+      <p>Sylvie et Sarah accompagnent les élèves de <strong>Longueau</strong> et des communes voisines dans la réussite du <strong>permis B</strong>, en <strong>boîte manuelle</strong> et <strong>boîte automatique</strong>. Notre auto-école propose également la conduite accompagnée (AAC), la conduite supervisée et la formation passerelle.</p>
     </div>
   </section>
 
@@ -872,9 +720,7 @@
   <section id="avis" style="margin-bottom:30px;">
     <h2>Avis de nos élèves</h2>
     <ul>
-      <li><p>"Merci à Sylvie et Sarah pour ces mois d'apprentissage, pour tous les conseils qui m'ont permis de réussir mon examen du permis de conduire.
-Avec de la persévérance et de l'espoir, merci d'avoir cru en moi.
-Deux monitrices toujours très souriantes, dynamiques et dans la bonne humeur."</p></li>
+      <li><p>"Merci à Sylvie et Sarah pour ces mois d'apprentissage, pour tous les conseils qui m'ont permis de réussir mon examen du permis de conduire. Avec de la persévérance et de l'espoir, merci d'avoir cru en moi. Deux monitrices toujours très souriantes, dynamiques et dans la bonne humeur."</p></li>
       <li><p>"Superbe auto-école, Sylvie est très pédagogue. Malgré le fait d'être passée avant dans une autre auto-école, elle a accepté de m'aider et de me conseiller. Elle est très patiente et investie avec tous ses élèves. Je vous la recommande, vous aurez votre permis à coup sûr !"</p></li>
       <li><p>"Auto-école vivement recommandée ! Sylvie est une monitrice très sympathique, patiente et à l'écoute, mais aussi très professionnelle et pédagogue. Un grand merci pour tous les précieux conseils qu'elle a pu me donner et qui m'ont aidée à obtenir mon permis !!!"</p></li>
     </ul>
@@ -888,10 +734,7 @@ Deux monitrices toujours très souriantes, dynamiques et dans la bonne humeur."<
   <!-- PRISE DE RENDEZ-VOUS -->
   <section id="rendez-vous">
     <h2>Prise de rendez-vous</h2>
-    <p style="text-align:center; margin-bottom:20px; font-size:1em;">
-      Pour toute demande d'inscription, d'évaluation de départ ou de renseignements complémentaires,
-      merci de remplir le formulaire ci-dessous.
-    </p>
+    <p style="text-align:center; margin-bottom:20px; font-size:1em;">Pour toute demande d'inscription, d'évaluation de départ ou de renseignements complémentaires, merci de remplir le formulaire ci-dessous.</p>
     <form action="https://formspree.io/f/meelvaql" method="POST" class="form-rdv">
       <label for="Nom">Nom :</label>
       <input type="text" id="Nom" name="Nom" placeholder="Nom" required>
@@ -920,9 +763,7 @@ Deux monitrices toujours très souriantes, dynamiques et dans la bonne humeur."<
       <textarea id="Objet" name="Objet" rows="3" placeholder="Informations supplémentaires (si nécessaire)"></textarea>
       <button type="submit">Envoyer la demande</button>
     </form>
-    <p style="text-align:center; margin-top:20px; font-size:1em;">
-      Nous vous recontacterons rapidement pour fixer un rendez-vous. Les rendez-vous se font sur <a href="#horaires" style="color:#00bfff; text-decoration:underline;">les heures d'ouverture du bureau</a>.
-    </p>
+    <p style="text-align:center; margin-top:20px; font-size:1em;">Nous vous recontacterons rapidement pour fixer un rendez-vous. Les rendez-vous se font sur <a href="#horaires" style="color:#00bfff; text-decoration:underline;">les heures d'ouverture du bureau</a>.</p>
   </section>
 
   <!-- FAQ -->
@@ -943,10 +784,41 @@ Deux monitrices toujours très souriantes, dynamiques et dans la bonne humeur."<
 
 <script>
 // =============================================
+// CHIFFREMENT SHA-256 (Web Crypto API native)
+// =============================================
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray  = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// =============================================
+// STOCKAGE LOCAL DES IDENTIFIANTS
+// =============================================
+// Hash SHA-256 du mot de passe par défaut "longueau2024"
+// Valeur pré-calculée pour permettre la connexion initiale
+const DEFAULT_HASH = '6a5e0e9e2c67c0c1a7b2d5f8e9a3c1b4d6e7f2a9b0c3d4e5f6a7b8c9d0e1f2a3'; // placeholder
+
+let authData = {
+  username: 'admin',
+  passwordHash: null // sera initialisé au démarrage
+};
+
+// Initialise le hash si absent (première utilisation)
+async function initAuth() {
+  const stored = localStorage.getItem('ael_auth');
+  if (stored) {
+    try { authData = JSON.parse(stored); return; } catch(e) {}
+  }
+  // Premier démarrage : hash du mot de passe par défaut
+  authData.passwordHash = await sha256('longueau2024');
+  localStorage.setItem('ael_auth', JSON.stringify(authData));
+}
+
+// =============================================
 // DONNÉES INITIALES
 // =============================================
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'longueau2024';
 let isLoggedIn = false;
 
 let horaireData = [
@@ -967,9 +839,14 @@ let contactData = {
   facebook:'https://www.facebook.com/profile.php?id=100054197694817&locale=fr_FR',
 };
 
-// Catégories des tarifs : forfaits / theorique / admin / lecons
+const catConfig = {
+  forfaits: {label:'Forfaits',      h3:'Forfaits',                                              cls:'forfaits-ajout'},
+  theorique:{label:'Théorique',     h3:'Enseignement théorique',                                cls:'cadre-tarifs'},
+  admin:    {label:'Frais admin.',  h3:"Constitution du dossier et présentation à l'examen",   cls:'cadre-tarifs'},
+  lecons:   {label:'Leçons',        h3:'Tarifs permis B, AAC et conduite supervisée',           cls:'cadre-tarifs'},
+};
+
 let tarifData = [
-  // ---- FORFAITS ----
   {cat:'forfaits', name:'Formule théorique', desc:'Frais administratifs – Formation théorique – 1 Class Rousseau + 1 manuel code', price:325},
   {cat:'forfaits', name:'Permis B – Boîte manuelle 20h', desc:'Frais administratifs – Formation théorique – 20h de cours pratiques – 1 accompagnement pratique', price:1280},
   {cat:'forfaits', name:'Permis B – Boîte manuelle 25h', desc:'Frais administratifs – Formation théorique – 25h de cours pratiques – 2 accompagnements pratiques', price:1580},
@@ -980,15 +857,12 @@ let tarifData = [
   {cat:'forfaits', name:'Permis B – Boîte manuelle sans code 20h', desc:'Frais administratifs – 20h de cours pratiques – 1 accompagnement pratique', price:1130},
   {cat:'forfaits', name:'Permis B – Boîte manuelle sans code 25h', desc:'Frais administratifs – 25h de cours pratiques – 2 accompagnements pratiques', price:1430},
   {cat:'forfaits', name:'Formation passerelle (auto → manuelle)', desc:'Frais administratifs – 7h de cours pratiques – 1 évaluation de départ', price:470},
-  // ---- THEORIQUE ----
   {cat:'theorique', name:'Test audio visuel collectif', desc:'Session de test en salle', price:15},
   {cat:'theorique', name:'Forfait code (6 mois)', desc:'Accès illimité 6 mois aux sessions de code', price:200},
-  // ---- ADMIN ----
-  {cat:'admin', name:'Frais administratifs', desc:'Constitution du dossier et présentation à l\'examen', price:80},
+  {cat:'admin', name:'Frais administratifs', desc:"Constitution du dossier et présentation à l'examen", price:80},
   {cat:'admin', name:'Accompagnement permis B – Boîte manuelle', desc:'', price:50},
   {cat:'admin', name:'Accompagnement permis B – Boîte automatique', desc:'', price:55},
   {cat:'admin', name:'Redevance paiement ETG', desc:'', price:30},
-  // ---- LECONS ----
   {cat:'lecons', name:'Évaluation (hors forfait)', desc:'', price:40},
   {cat:'lecons', name:'Leçon de conduite 1h – Boîte manuelle', desc:'', price:50},
   {cat:'lecons', name:'Leçon de conduite 1h – Boîte automatique', desc:'', price:55},
@@ -1031,80 +905,240 @@ let faqData = [
 ];
 
 // =============================================
+// FIREBASE — Lecture/écriture des données
+// =============================================
+// ⚠️ Les fonctions firebase sont exposées via window._firebase (voir <script type="module"> en haut)
+// Elles ne sont disponibles qu'après l'initialisation asynchrone du module
+
+async function fbSave(path, data) {
+  const fb = window._firebase;
+  if (!fb || !fb.ready) return false;
+  try {
+    await fb.set(fb.ref(fb.db, path), data);
+    return true;
+  } catch(e) {
+    console.error('Firebase write error:', e);
+    return false;
+  }
+}
+
+async function fbLoad(path) {
+  const fb = window._firebase;
+  if (!fb || !fb.ready) return null;
+  try {
+    const snap = await fb.get(fb.ref(fb.db, path));
+    return snap.exists() ? snap.val() : null;
+  } catch(e) {
+    console.error('Firebase read error:', e);
+    return null;
+  }
+}
+
+// Charge toutes les données depuis Firebase au démarrage
+async function loadFromFirebase() {
+  const fb = window._firebase;
+  if (!fb || !fb.ready) return;
+
+  const [h, c, t, f, auth] = await Promise.all([
+    fbLoad('autoecolelongueau/horaires'),
+    fbLoad('autoecolelongueau/contacts'),
+    fbLoad('autoecolelongueau/tarifs'),
+    fbLoad('autoecolelongueau/faq'),
+    fbLoad('autoecolelongueau/auth'),
+  ]);
+
+  if (h) horaireData = h;
+  if (c) Object.assign(contactData, c);
+  if (t && Array.isArray(t)) tarifData = t;
+  if (f && Array.isArray(f)) faqData = f;
+  if (auth) authData = auth;
+
+  // Rafraîchit l'affichage
+  renderHorairesDisplay();
+  renderContactsDisplay();
+  renderTarifsDisplay();
+  renderFaqDisplay();
+
+  // Met à jour le badge Firebase
+  const el = document.getElementById('firebase-status');
+  if (el) {
+    el.className = 'connected';
+    el.innerHTML = '<div class="firebase-dot connected"></div><i class="fa-solid fa-database"></i> Firebase connecté';
+  }
+}
+
+// =============================================
 // AUTH
 // =============================================
-function openLoginModal(){
-  if(isLoggedIn){ openAdmin(); return; }
+function openLoginModal() {
+  if (isLoggedIn) { openAdmin(); return; }
   document.getElementById('login-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('login-user').focus(),100);
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
 }
-function closeLoginModal(){
+function closeLoginModal() {
   document.getElementById('login-modal').classList.remove('open');
   document.getElementById('login-error').classList.remove('show');
 }
-function doLogin(){
+
+async function doLogin() {
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
-  if(u===ADMIN_USER && p===ADMIN_PASS){
-    isLoggedIn=true;
+  const hash = await sha256(p);
+
+  if (u === authData.username && hash === authData.passwordHash) {
+    isLoggedIn = true;
     document.getElementById('login-modal').classList.remove('open');
     document.getElementById('admin-login-btn').classList.add('logged-in');
     openAdmin();
   } else {
     document.getElementById('login-error').classList.add('show');
-    document.getElementById('login-pass').value='';
+    document.getElementById('login-pass').value = '';
     document.getElementById('login-pass').focus();
   }
 }
-function logout(){
-  isLoggedIn=false;
+
+function logout() {
+  isLoggedIn = false;
   document.getElementById('admin-login-btn').classList.remove('logged-in');
   document.getElementById('admin-panel').classList.remove('open');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
-function openAdmin(){
+
+function openAdmin() {
   renderAdminHoraires();
   renderAdminTarifs();
   renderAdminFaq();
   syncContactsToAdmin();
+  // Pré-remplir le champ identifiant
+  document.getElementById('new-username').value = authData.username;
   document.getElementById('admin-panel').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
-function closeAdmin(){
+function closeAdmin() {
   document.getElementById('admin-panel').classList.remove('open');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
+}
+
+// =============================================
+// MON COMPTE — Changement identifiants
+// =============================================
+async function saveCompte() {
+  const newUsername    = document.getElementById('new-username').value.trim();
+  const currentPw     = document.getElementById('confirm-current-pw').value;
+  const newPw         = document.getElementById('new-pw').value;
+  const confirmNewPw  = document.getElementById('confirm-new-pw').value;
+  const errEl         = document.getElementById('compte-error');
+  const errMsg        = document.getElementById('compte-error-msg');
+
+  errEl.classList.remove('show');
+
+  // Validations
+  if (!newUsername) {
+    errMsg.textContent = "L'identifiant ne peut pas être vide.";
+    errEl.classList.add('show'); return;
+  }
+  if (!currentPw) {
+    errMsg.textContent = "Veuillez saisir votre mot de passe actuel pour confirmer.";
+    errEl.classList.add('show'); return;
+  }
+
+  // Vérification mot de passe actuel
+  const currentHash = await sha256(currentPw);
+  if (currentHash !== authData.passwordHash) {
+    errMsg.textContent = "Le mot de passe actuel est incorrect.";
+    errEl.classList.add('show'); return;
+  }
+
+  let newHash = authData.passwordHash; // conserve l'ancien si pas de changement
+
+  if (newPw) {
+    if (newPw.length < 8) {
+      errMsg.textContent = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
+      errEl.classList.add('show'); return;
+    }
+    if (newPw !== confirmNewPw) {
+      errMsg.textContent = "Les deux nouveaux mots de passe ne correspondent pas.";
+      errEl.classList.add('show'); return;
+    }
+    newHash = await sha256(newPw);
+  }
+
+  authData.username     = newUsername;
+  authData.passwordHash = newHash;
+
+  // Sauvegarde locale
+  localStorage.setItem('ael_auth', JSON.stringify(authData));
+
+  // Sauvegarde Firebase
+  const saved = await fbSave('autoecolelongueau/auth', authData);
+
+  // Vide les champs
+  document.getElementById('confirm-current-pw').value = '';
+  document.getElementById('new-pw').value = '';
+  document.getElementById('confirm-new-pw').value = '';
+
+  showToast(saved
+    ? '✅ Identifiants mis à jour (Firebase + local)'
+    : '✅ Identifiants mis à jour (local uniquement)'
+  );
+}
+
+// =============================================
+// TOGGLE VISIBILITÉ MOT DE PASSE
+// =============================================
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon  = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fa-solid fa-eye';
+  }
 }
 
 // =============================================
 // TABS ADMIN
 // =============================================
-function showAdminTab(id, btn){
-  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('admin-'+id).classList.add('active');
+function showAdminTab(id, btn) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('admin-' + id).classList.add('active');
   btn.classList.add('active');
 }
 
 // =============================================
 // HORAIRES
 // =============================================
-function renderAdminHoraires(){
+const dayIcons = {
+  'Lundi':'fa-1','Mardi':'fa-2','Mercredi':'fa-3','Jeudi':'fa-4',
+  'Vendredi':'fa-5','Samedi':'fa-6','Dimanche':'fa-7'
+};
+const dayIconsReal = {
+  'Lundi':'fa-solid fa-l','Mardi':'fa-solid fa-calendar-day',
+  'Mercredi':'fa-solid fa-calendar-day','Jeudi':'fa-solid fa-calendar-day',
+  'Vendredi':'fa-solid fa-calendar-day','Samedi':'fa-solid fa-sun',
+  'Dimanche':'fa-solid fa-moon'
+};
+
+function renderAdminHoraires() {
   const el = document.getElementById('horaires-editor');
-  el.innerHTML = horaireData.map((h,i)=>`
+  el.innerHTML = horaireData.map((h, i) => `
     <div class="horaire-admin-row" id="hrow-${i}">
-      <div class="horaire-admin-day">${h.day}</div>
+      <div class="horaire-admin-day"><i class="fa-regular fa-calendar" style="color:#00bfff"></i> ${h.day}</div>
       <label class="admin-toggle">
-        <input type="checkbox" id="h-open-${i}" ${h.open?'checked':''} onchange="toggleHoraireOpen(${i})">
-        <span id="h-status-${i}">${h.open?'Ouvert':'Fermé'}</span>
+        <input type="checkbox" id="h-open-${i}" ${h.open ? 'checked' : ''} onchange="toggleHoraireOpen(${i})">
+        <span id="h-status-${i}">${h.open ? 'Ouvert' : 'Fermé'}</span>
       </label>
-      <div class="time-fields" id="h-times-${i}" style="${h.open?'':'opacity:0.35;pointer-events:none'}">
+      <div class="time-fields" id="h-times-${i}" style="${h.open ? '' : 'opacity:0.35;pointer-events:none'}">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <div class="admin-field" style="margin:0;flex:1;min-width:100px">
-            <label>Ouverture</label>
+            <label><i class="fa-regular fa-clock"></i> Ouverture</label>
             <input type="time" id="h-debut-${i}" value="${h.debut}">
           </div>
           <div class="admin-field" style="margin:0;flex:1;min-width:100px">
-            <label>Fermeture</label>
+            <label><i class="fa-regular fa-clock"></i> Fermeture</label>
             <input type="time" id="h-fin-${i}" value="${h.fin}">
           </div>
         </div>
@@ -1113,41 +1147,42 @@ function renderAdminHoraires(){
   `).join('');
 }
 
-function toggleHoraireOpen(i){
-  const checked = document.getElementById('h-open-'+i).checked;
-  document.getElementById('h-status-'+i).textContent = checked?'Ouvert':'Fermé';
-  const times = document.getElementById('h-times-'+i);
-  times.style.opacity = checked?'1':'0.35';
-  times.style.pointerEvents = checked?'auto':'none';
+function toggleHoraireOpen(i) {
+  const checked = document.getElementById('h-open-' + i).checked;
+  document.getElementById('h-status-' + i).textContent = checked ? 'Ouvert' : 'Fermé';
+  const times = document.getElementById('h-times-' + i);
+  times.style.opacity       = checked ? '1' : '0.35';
+  times.style.pointerEvents = checked ? 'auto' : 'none';
 }
 
-function saveHoraires(){
-  horaireData.forEach((h,i)=>{
-    h.open  = document.getElementById('h-open-'+i).checked;
-    h.debut = document.getElementById('h-debut-'+i).value;
-    h.fin   = document.getElementById('h-fin-'+i).value;
+async function saveHoraires() {
+  horaireData.forEach((h, i) => {
+    h.open  = document.getElementById('h-open-' + i).checked;
+    h.debut = document.getElementById('h-debut-' + i).value;
+    h.fin   = document.getElementById('h-fin-' + i).value;
   });
   renderHorairesDisplay();
-  showToast('Horaires mis à jour avec succès !');
+  const saved = await fbSave('autoecolelongueau/horaires', horaireData);
+  showToast(saved ? '✅ Horaires mis à jour (Firebase)' : '✅ Horaires mis à jour (local)');
 }
 
-function renderHorairesDisplay(){
+function renderHorairesDisplay() {
   const el = document.getElementById('horaires-display');
-  el.innerHTML = horaireData.map(h=>`
-    <li style="text-align:center">${h.day} : ${h.open ? formatTime(h.debut)+' – '+formatTime(h.fin) : 'Fermé'}</li>
+  el.innerHTML = horaireData.map(h => `
+    <li style="text-align:center">${h.day} : ${h.open ? formatTime(h.debut) + ' – ' + formatTime(h.fin) : 'Fermé'}</li>
   `).join('');
 }
 
-function formatTime(t){
-  if(!t) return '';
-  const [hh,mm] = t.split(':');
-  return hh+'h'+mm;
+function formatTime(t) {
+  if (!t) return '';
+  const [hh, mm] = t.split(':');
+  return hh + 'h' + mm;
 }
 
 // =============================================
 // CONTACTS
 // =============================================
-function syncContactsToAdmin(){
+function syncContactsToAdmin() {
   document.getElementById('c-fixe').value    = contactData.fixe;
   document.getElementById('c-mobile').value  = contactData.mobile;
   document.getElementById('c-email').value   = contactData.email;
@@ -1155,17 +1190,18 @@ function syncContactsToAdmin(){
   document.getElementById('c-facebook').value= contactData.facebook;
 }
 
-function saveContacts(){
+async function saveContacts() {
   contactData.fixe    = document.getElementById('c-fixe').value;
   contactData.mobile  = document.getElementById('c-mobile').value;
   contactData.email   = document.getElementById('c-email').value;
   contactData.adresse = document.getElementById('c-adresse').value;
   contactData.facebook= document.getElementById('c-facebook').value;
   renderContactsDisplay();
-  showToast('Contacts mis à jour avec succès !');
+  const saved = await fbSave('autoecolelongueau/contacts', contactData);
+  showToast(saved ? '✅ Contacts mis à jour (Firebase)' : '✅ Contacts mis à jour (local)');
 }
 
-function renderContactsDisplay(){
+function renderContactsDisplay() {
   const el = document.getElementById('contacts-display');
   el.innerHTML = `
     <p style="text-align:center"><b>Téléphone fixe :</b> ${esc(contactData.fixe)}</p>
@@ -1179,35 +1215,28 @@ function renderContactsDisplay(){
 // =============================================
 // TARIFS
 // =============================================
-const catConfig = {
-  forfaits: {label:'Forfaits', h3:'Forfaits', cls:'forfaits-ajout'},
-  theorique: {label:'Théorique', h3:'Enseignement théorique', cls:'cadre-tarifs'},
-  admin:     {label:'Frais admin.', h3:'Constitution du dossier et présentation à l\'examen', cls:'cadre-tarifs'},
-  lecons:    {label:'Leçons', h3:'Tarifs permis B, AAC et conduite supervisée', cls:'cadre-tarifs'},
-};
-
-function renderAdminTarifs(){
+function renderAdminTarifs() {
   const el = document.getElementById('tarifs-editor');
-  el.innerHTML = tarifData.map((t,i)=>`
+  el.innerHTML = tarifData.map((t, i) => `
     <div class="tarif-admin-row" id="trow-${i}">
       <div>
         <div class="admin-field" style="margin-bottom:8px">
-          <label>Nom de la prestation</label>
+          <label><i class="fa-solid fa-tag"></i> Nom de la prestation</label>
           <input type="text" id="t-name-${i}" value="${esc(t.name)}">
         </div>
         <div class="admin-field" style="margin-bottom:8px">
-          <label>Description (optionnel)</label>
+          <label><i class="fa-solid fa-align-left"></i> Description (optionnel)</label>
           <input type="text" id="t-desc-${i}" value="${esc(t.desc)}" placeholder="Description courte...">
         </div>
         <div class="admin-field" style="margin:0">
-          <label>Catégorie</label>
+          <label><i class="fa-solid fa-layer-group"></i> Catégorie</label>
           <select id="t-cat-${i}">
-            ${Object.entries(catConfig).map(([v,c])=>`<option value="${v}" ${t.cat===v?'selected':''}>${c.label}</option>`).join('')}
+            ${Object.entries(catConfig).map(([v, c]) => `<option value="${v}" ${t.cat === v ? 'selected' : ''}>${c.label}</option>`).join('')}
           </select>
         </div>
       </div>
       <div class="admin-field" style="margin:0;min-width:80px">
-        <label>Prix (€)</label>
+        <label><i class="fa-solid fa-euro-sign"></i> Prix (€)</label>
         <input type="number" id="t-price-${i}" value="${t.price}" min="0" style="font-size:18px;font-weight:bold;color:#00bfff">
       </div>
       <button class="btn-del" onclick="deleteTarif(${i})" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
@@ -1215,44 +1244,43 @@ function renderAdminTarifs(){
   `).join('');
 }
 
-function addTarifLine(){
-  tarifData.push({cat:'forfaits', name:'Nouvelle prestation', desc:'', price:0});
+function addTarifLine() {
+  tarifData.push({ cat: 'forfaits', name: 'Nouvelle prestation', desc: '', price: 0 });
   renderAdminTarifs();
-  const el = document.getElementById('tarifs-editor');
-  el.lastElementChild.scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('tarifs-editor').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function deleteTarif(i){
-  if(confirm('Supprimer cette prestation ?')){
-    tarifData.splice(i,1);
+function deleteTarif(i) {
+  if (confirm('Supprimer cette prestation ?')) {
+    tarifData.splice(i, 1);
     renderAdminTarifs();
   }
 }
 
-function saveTarifs(){
-  tarifData.forEach((t,i)=>{
-    t.name  = document.getElementById('t-name-'+i).value;
-    t.desc  = document.getElementById('t-desc-'+i).value;
-    t.cat   = document.getElementById('t-cat-'+i).value;
-    t.price = parseFloat(document.getElementById('t-price-'+i).value)||0;
+async function saveTarifs() {
+  tarifData.forEach((t, i) => {
+    t.name  = document.getElementById('t-name-' + i).value;
+    t.desc  = document.getElementById('t-desc-' + i).value;
+    t.cat   = document.getElementById('t-cat-' + i).value;
+    t.price = parseFloat(document.getElementById('t-price-' + i).value) || 0;
   });
   renderTarifsDisplay();
-  showToast('Tarifs mis à jour avec succès !');
+  const saved = await fbSave('autoecolelongueau/tarifs', tarifData);
+  showToast(saved ? '✅ Tarifs mis à jour (Firebase)' : '✅ Tarifs mis à jour (local)');
 }
 
-function renderTarifsDisplay(){
+function renderTarifsDisplay() {
   const el = document.getElementById('tarifs-display');
-  // Regrouper par catégorie
-  const cats = ['forfaits','theorique','admin','lecons'];
+  const cats = ['forfaits', 'theorique', 'admin', 'lecons'];
   let html = '';
-  cats.forEach(cat=>{
-    const items = tarifData.filter(t=>t.cat===cat);
-    if(!items.length) return;
+  cats.forEach(cat => {
+    const items = tarifData.filter(t => t.cat === cat);
+    if (!items.length) return;
     const conf = catConfig[cat];
     html += `<div class="${conf.cls}"><h3>${conf.h3}</h3><ul>`;
-    items.forEach(t=>{
+    items.forEach(t => {
       html += `<li><strong>${esc(t.name)} :</strong> ${t.price.toLocaleString('fr-FR')} €`;
-      if(t.desc) html += `<br>${esc(t.desc)}`;
+      if (t.desc) html += `<br>${esc(t.desc)}`;
       html += `</li>`;
     });
     html += `</ul></div>`;
@@ -1263,16 +1291,16 @@ function renderTarifsDisplay(){
 // =============================================
 // FAQ
 // =============================================
-function renderAdminFaq(){
+function renderAdminFaq() {
   const el = document.getElementById('faq-editor');
-  el.innerHTML = faqData.map((f,i)=>`
+  el.innerHTML = faqData.map((f, i) => `
     <div class="faq-admin-item" id="frow-${i}">
       <div class="admin-field" style="margin-bottom:8px">
-        <label>Question</label>
+        <label><i class="fa-solid fa-circle-question"></i> Question</label>
         <input type="text" id="f-q-${i}" value="${esc(f.q)}">
       </div>
       <div class="admin-field" style="margin-bottom:0">
-        <label>Réponse</label>
+        <label><i class="fa-solid fa-reply"></i> Réponse</label>
         <textarea id="f-a-${i}" rows="3">${esc(f.a)}</textarea>
       </div>
       <div class="faq-admin-actions">
@@ -1282,41 +1310,41 @@ function renderAdminFaq(){
   `).join('');
 }
 
-function addFaqItem(){
-  faqData.push({q:'Nouvelle question ?', a:'Réponse à rédiger...'});
+function addFaqItem() {
+  faqData.push({ q: 'Nouvelle question ?', a: 'Réponse à rédiger...' });
   renderAdminFaq();
-  document.getElementById('frow-'+(faqData.length-1)).scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('frow-' + (faqData.length - 1)).scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function deleteFaq(i){
-  if(confirm('Supprimer cette question ?')){
-    faqData.splice(i,1);
+function deleteFaq(i) {
+  if (confirm('Supprimer cette question ?')) {
+    faqData.splice(i, 1);
     renderAdminFaq();
   }
 }
 
-function saveFaq(){
-  faqData.forEach((f,i)=>{
-    f.q = document.getElementById('f-q-'+i).value;
-    f.a = document.getElementById('f-a-'+i).value;
+async function saveFaq() {
+  faqData.forEach((f, i) => {
+    f.q = document.getElementById('f-q-' + i).value;
+    f.a = document.getElementById('f-a-' + i).value;
   });
   renderFaqDisplay();
-  showToast('FAQ mise à jour avec succès !');
+  const saved = await fbSave('autoecolelongueau/faq', faqData);
+  showToast(saved ? '✅ FAQ mise à jour (Firebase)' : '✅ FAQ mise à jour (local)');
 }
 
-function renderFaqDisplay(){
+function renderFaqDisplay() {
   const el = document.getElementById('faq-display');
-  el.innerHTML = faqData.map(f=>`
+  el.innerHTML = faqData.map(f => `
     <button class="faq-question">${esc(f.q)}</button>
     <div class="faq-answer"><p>${esc(f.a)}</p></div>
   `).join('');
-  // Rebind events
-  document.querySelectorAll('.faq-question').forEach(q=>{
-    q.addEventListener('click',()=>{
+  document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
       const answer = q.nextElementSibling;
-      const isOpen = answer.style.display==='block';
-      document.querySelectorAll('.faq-answer').forEach(a=>a.style.display='none');
-      if(!isOpen) answer.style.display='block';
+      const isOpen = answer.style.display === 'block';
+      document.querySelectorAll('.faq-answer').forEach(a => a.style.display = 'none');
+      if (!isOpen) answer.style.display = 'block';
     });
   });
 }
@@ -1324,34 +1352,39 @@ function renderFaqDisplay(){
 // =============================================
 // UTILS
 // =============================================
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 let toastTimer;
-function showToast(msg){
-  document.getElementById('toast-msg').textContent = msg;
+function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
-  t.classList.add('show');
+  const icon = t.querySelector('i');
+  document.getElementById('toast-msg').textContent = msg;
+  icon.className = isError ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-circle-check';
+  t.className = isError ? 'error show' : 'show';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
 // =============================================
 // SCROLL & NAVIGATION
 // =============================================
-window.addEventListener('scroll',()=>{
-  const btn = document.getElementById('backToTop');
-  btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+window.addEventListener('scroll', () => {
+  document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
 });
 
-document.querySelectorAll('a[href^="#"]').forEach(link=>{
-  link.addEventListener('click',function(e){
-    const targetId = this.getAttribute('href').substring(1);
-    const target = document.getElementById(targetId);
-    if(target){
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', function(e) {
+    const target = document.getElementById(this.getAttribute('href').substring(1));
+    if (target) {
       e.preventDefault();
       const menuHeight = document.getElementById('menu-bandeau').offsetHeight;
-      const targetPos = target.getBoundingClientRect().top + window.scrollY - menuHeight;
-      window.scrollTo({top: targetPos, behavior:'smooth'});
+      window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - menuHeight, behavior: 'smooth' });
     }
   });
 });
@@ -1359,10 +1392,19 @@ document.querySelectorAll('a[href^="#"]').forEach(link=>{
 // =============================================
 // INIT
 // =============================================
-renderHorairesDisplay();
-renderContactsDisplay();
-renderTarifsDisplay();
-renderFaqDisplay();
+(async () => {
+  await initAuth();
+
+  // Attend que Firebase soit prêt (chargement du module async)
+  setTimeout(async () => {
+    await loadFromFirebase();
+  }, 500);
+
+  renderHorairesDisplay();
+  renderContactsDisplay();
+  renderTarifsDisplay();
+  renderFaqDisplay();
+})();
 </script>
 </body>
 </html>
