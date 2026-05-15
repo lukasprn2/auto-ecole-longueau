@@ -1009,10 +1009,16 @@ function openAdmin() {
   renderAdminTarifs();
   renderAdminFaq();
   syncContactsToAdmin();
-  // Pré-remplir le champ identifiant
   document.getElementById('new-username').value = authData.username;
   document.getElementById('admin-panel').classList.add('open');
   document.body.style.overflow = 'hidden';
+  setTimeout(() => {
+    document.querySelectorAll('#admin-panel i[class*="fa-"]').forEach(el => {
+      el.style.display = 'none';
+      el.offsetHeight;
+      el.style.display = '';
+    });
+  }, 50);
 }
 function closeAdmin() {
   document.getElementById('admin-panel').classList.remove('open');
