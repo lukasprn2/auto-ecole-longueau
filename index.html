@@ -1231,7 +1231,7 @@ function renderAdminTarifs() {
         <label><i class="fa-solid fa-euro-sign"></i> Prix (€)</label>
         <input type="number" id="t-price-${i}" value="${t.price}" min="0" style="font-size:18px;font-weight:bold;color:#00bfff">
       </div>
-      <button class="btn-del" onclick="deleteTarif(${i})" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+      <button class="btn-del" onclick="deleteTarif(${i})" title="Supprimer">🗑️ Supprimer</button>
     </div>
   `).join('');
 }
@@ -1296,7 +1296,7 @@ function renderAdminFaq() {
         <textarea id="f-a-${i}" rows="3">${esc(f.a)}</textarea>
       </div>
       <div class="faq-admin-actions">
-        <button class="btn-del" onclick="deleteFaq(${i})"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        <button class="btn-del" onclick="deleteFaq(${i})">🗑️ Supprimer</button>
       </div>
     </div>
   `).join('');
